@@ -573,13 +573,7 @@
     'login-password': { empty: 'Password is required', invalid: 'Password must be at least 8 characters' }
   };
 
-  // ===========================
-  //   IN-MEMORY USER STORE
-  // ===========================
-  // Seed one default admin
-  const users = [
-    { username: 'admin', email: 'admin@bloodlink.com', name: 'System Admin', password: 'Admin@1234' }
-  ];
+  
 
   // ===========================
   //   TAB SWITCHING
@@ -712,124 +706,128 @@
   // ===========================
   //   HANDLE LOGIN
   // ===========================
-  function handleLogin() {
-    const identInput = document.getElementById('login-username');
-    const pwdInput   = document.getElementById('login-password');
-    const ident      = identInput.value.trim();
-    const pwd        = pwdInput.value;
+    async function handleLogin() {
 
-    // Validate fields
-    let valid = true;
-    const identErr = document.getElementById('err-login-username');
-    const pwdErr   = document.getElementById('err-login-password');
+  const username =
+    document.getElementById('login-username').value.trim();
 
-    if (!ident) {
-      setError(identErr, MESSAGES['login-username'].empty);
-      identInput.style.borderColor = 'var(--red)';
-      valid = false;
-    } else if (!REGEX.loginId.test(ident)) {
-      setError(identErr, '<i class="fa-solid fa-circle-exclamation"></i> ' + MESSAGES['login-username'].invalid);
-      identInput.style.borderColor = 'var(--red)';
-      valid = false;
+  const password =
+    document.getElementById('login-password').value;
+
+  try {
+
+    const res = await fetch('http://localhost:3000/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        username,
+        password
+      })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+
+      showAuthToast('✅ Login successful', 'success');
+
+      sessionStorage.setItem(
+        'bl_user',
+        JSON.stringify(data.user)
+      );
+
+      setTimeout(() => {
+        window.location.href = 'index.html';
+      }, 1000);
+
     } else {
-      identErr.innerHTML = '';
-      identInput.style.borderColor = 'var(--border)';
+
+      showAuthToast('❌ ' + data.message, 'error');
+
     }
 
-    if (!pwd) {
-      setError(pwdErr, MESSAGES['login-password'].empty);
-      pwdInput.style.borderColor = 'var(--red)';
-      valid = false;
-    } else if (pwd.length < 8) {
-      setError(pwdErr, '<i class="fa-solid fa-circle-exclamation"></i> ' + MESSAGES['login-password'].invalid);
-      pwdInput.style.borderColor = 'var(--red)';
-      valid = false;
-    } else {
-      pwdErr.innerHTML = '';
-      pwdInput.style.borderColor = 'var(--border)';
-    }
+  } catch (err) {
 
-    if (!valid) return;
+    showAuthToast('❌ Server Error', 'error');
 
-    // Check credentials
-    const user = users.find(u =>
-      (u.username === ident || u.email === ident) && u.password === pwd
-    );
-
-    const btn = document.getElementById('login-btn');
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Signing in…';
-
-    setTimeout(() => {
-      if (user) {
-        // Store session
-        sessionStorage.setItem('bl_user', JSON.stringify({ username: user.username, name: user.name }));
-        showAuthToast('✅ Welcome back, ' + user.name + '!', 'success');
-        setTimeout(() => { window.location.href = 'index.html'; }, 900);
-      } else {
-        showAuthToast('❌ Invalid credentials. Please try again.', 'error');
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Sign In';
-        pwdInput.style.borderColor = 'var(--red)';
-        setError(pwdErr, '<i class="fa-solid fa-circle-exclamation"></i> Incorrect username/email or password');
-      }
-    }, 700);
   }
+}
+       
+  
 
   // ===========================
   //   HANDLE REGISTER
   // ===========================
-  function handleRegister() {
-    const fields  = ['reg-name', 'reg-email', 'reg-username', 'reg-password', 'reg-confirm'];
-    let allValid  = true;
+  
+   async function handleRegister() {
 
-    fields.forEach(f => {
-      if (!liveValidate(f)) allValid = false;
+  const fields = [
+    'reg-name',
+    'reg-email',
+    'reg-username',
+    'reg-password',
+    'reg-confirm'
+  ];
+
+  let allValid = true;
+
+  fields.forEach(f => {
+    if (!liveValidate(f)) {
+      allValid = false;
+    }
+  });
+
+  if (!allValid) {
+    showAuthToast('❌ Please fix the errors above.', 'error');
+    return;
+  }
+
+  if (!document.getElementById('reg-terms').checked) {
+    showAuthToast('❌ Please accept Terms.', 'error');
+    return;
+  }
+
+  const userData = {
+    name: document.getElementById('reg-name').value.trim(),
+    email: document.getElementById('reg-email').value.trim(),
+    username: document.getElementById('reg-username').value.trim(),
+    password: document.getElementById('reg-password').value
+  };
+
+  try {
+
+    const res = await fetch('http://localhost:3000/register', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(userData)
     });
 
-    if (!allValid) {
-      showAuthToast('❌ Please fix the errors above.', 'error');
-      return;
+    const data = await res.json();
+
+    if (data.success) {
+
+      showAuthToast('✅ Registration successful', 'success');
+
+      setTimeout(() => {
+        switchTab('login');
+      }, 1000);
+
+    } else {
+
+      showAuthToast('❌ ' + data.message, 'error');
+
     }
 
-    if (!document.getElementById('reg-terms').checked) {
-      showAuthToast('❌ Please accept the Terms of Service.', 'error');
-      return;
-    }
+  } catch (err) {
 
-    const username = document.getElementById('reg-username').value.trim();
-    const email    = document.getElementById('reg-email').value.trim();
+    showAuthToast('❌ Server Error', 'error');
 
-    // Check uniqueness
-    if (users.find(u => u.username === username)) {
-      setError(document.getElementById('err-reg-username'), '<i class="fa-solid fa-circle-exclamation"></i> Username already taken');
-      document.getElementById('reg-username').style.borderColor = 'var(--red)';
-      return;
-    }
-    if (users.find(u => u.email === email)) {
-      setError(document.getElementById('err-reg-email'), '<i class="fa-solid fa-circle-exclamation"></i> Email already registered');
-      document.getElementById('reg-email').style.borderColor = 'var(--red)';
-      return;
-    }
-
-    const btn = document.getElementById('register-btn');
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Creating account…';
-
-    const newUser = {
-      name:     document.getElementById('reg-name').value.trim(),
-      email,
-      username,
-      password: document.getElementById('reg-password').value
-    };
-
-    setTimeout(() => {
-      users.push(newUser);
-      sessionStorage.setItem('bl_user', JSON.stringify({ username: newUser.username, name: newUser.name }));
-      showAuthToast('✅ Account created! Redirecting…', 'success');
-      setTimeout(() => { window.location.href = 'index.html'; }, 900);
-    }, 700);
   }
+}
 
   // ===========================
   //   FORGOT PASSWORD

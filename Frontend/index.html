@@ -62,7 +62,34 @@
         <i class="fa-solid fa-magnifying-glass"></i>
         <input type="text" placeholder="Search anything..." id="global-search"/>
       </div>
-      <button class="notif-btn"><i class="fa-solid fa-bell"></i><span class="badge">3</span></button>
+      <div class="notification-box">
+
+  <button
+    class="notif-btn"
+    onclick="toggleNotifications()"
+  >
+    <i class="fa-solid fa-bell"></i>
+
+    <span
+      class="badge"
+      id="notificationCount"
+    >
+      0
+    </span>
+  </button>
+
+  <div
+    id="notificationDropdown"
+    class="notification-dropdown"
+  >
+
+    <h4>Notifications</h4>
+
+    <ul id="notificationList"></ul>
+
+  </div>
+
+</div>
       <button class="btn-primary" style="padding:8px 16px;font-size:0.82rem" onclick="handleLogout()">
         <i class="fa-solid fa-right-from-bracket"></i> Logout
       </button>

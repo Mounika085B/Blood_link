@@ -738,6 +738,7 @@ async function saveRequest(e) {
     closeModal("request-modal");
 
     loadRequests();
+    loadNotifications();
 
   } catch (err) {
 
@@ -1086,6 +1087,10 @@ async function deleteEmergency(id) {
 
 }
 
+/* =========================================================
+   NOTIFICATIONS
+========================================================= */
+
 let notifications = [];
 
 // Open / Close Notification
@@ -1096,9 +1101,7 @@ function toggleNotifications() {
       "notificationDropdown"
     );
 
-  if (
-    dropdown.style.display === "block"
-  ) {
+  if (dropdown.style.display === "block") {
 
     dropdown.style.display = "none";
 
@@ -1112,13 +1115,44 @@ function toggleNotifications() {
 // Add Notification
 function addNotification(message) {
 
-  notifications.unshift(message);
-
-  document.getElementById(
-    "notificationCount"
-  ).innerText = notifications.length;
+  notifications.unshift({
+    message: message,
+    time: new Date().toLocaleTimeString()
+  });
 
   renderNotifications();
+
+}
+
+// Load Notifications
+function loadNotifications() {
+
+  notifications = [];
+
+  // Blood Requests
+  state.requests.forEach(r => {
+
+    notifications.push({
+      message:
+        `Blood Request Added (${r.blood_group})`,
+      time: new Date().toLocaleTimeString()
+    });
+
+  });
+
+  // Emergency Requests
+  state.emergency.forEach(e => {
+
+    notifications.push({
+      message:
+        `Emergency Request (${e.blood_group})`,
+      time: new Date().toLocaleTimeString()
+    });
+
+  });
+
+  renderNotifications();
+
 }
 
 // Render Notifications
@@ -1133,37 +1167,48 @@ function renderNotifications() {
 
   list.innerHTML = "";
 
-  notifications.forEach((msg) => {
+  notifications.forEach((n) => {
 
     const li =
       document.createElement("li");
 
-    li.innerText = msg;
+    li.innerHTML = `
+      🔔 ${n.message}
+      <br>
+      <small>${n.time}</small>
+    `;
 
     list.appendChild(li);
 
   });
+
+  document.getElementById(
+    "notificationCount"
+  ).innerText = notifications.length;
+
 }
 
 /* =========================================================
    INITIAL LOAD
 ========================================================= */
 
-window.onload = () => {
+window.onload = async () => {
 
-  loadDonors();
-  loadBanks();
-  loadStock();
-  loadDonations();
-  loadRequests();
-  loadPatients();
-  loadEmergency();
+  await loadDonors();
 
-  renderNotifications();
+  await loadBanks();
 
-  // TEST NOTIFICATION
-  addNotification(
-    "🚨 O+ blood request added"
-  );
+  await loadStock();
+
+  await loadDonations();
+
+  await loadRequests();
+
+  await loadPatients();
+
+  await loadEmergency();
+
+  // Load notifications AFTER data loads
+  loadNotifications();
 
 };

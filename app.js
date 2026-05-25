@@ -1110,9 +1110,10 @@ function toggleNotifications() {
     dropdown.style.display = "block";
 
   }
+
 }
 
-// Add Notification
+// Add Single Notification
 function addNotification(message) {
 
   notifications.unshift({
@@ -1121,6 +1122,17 @@ function addNotification(message) {
   });
 
   renderNotifications();
+
+}
+
+// Clear Notifications
+function clearNotifications() {
+
+  notifications = [];
+
+  renderNotifications();
+
+  showToast("Notifications Cleared");
 
 }
 
@@ -1167,21 +1179,35 @@ function renderNotifications() {
 
   list.innerHTML = "";
 
-  notifications.forEach((n) => {
+  // Empty State
+  if (notifications.length === 0) {
 
-    const li =
-      document.createElement("li");
-
-    li.innerHTML = `
-      🔔 ${n.message}
-      <br>
-      <small>${n.time}</small>
+    list.innerHTML = `
+      <li class="empty-state">
+        No notifications
+      </li>
     `;
 
-    list.appendChild(li);
+  } else {
 
-  });
+    notifications.forEach((n) => {
 
+      const li =
+        document.createElement("li");
+
+      li.innerHTML = `
+        🔔 ${n.message}
+        <br>
+        <small>${n.time}</small>
+      `;
+
+      list.appendChild(li);
+
+    });
+
+  }
+
+  // Update Count
   document.getElementById(
     "notificationCount"
   ).innerText = notifications.length;

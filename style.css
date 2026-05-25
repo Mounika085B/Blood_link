@@ -854,3 +854,25 @@ input, select, textarea { font-family: inherit; }
 
   border-bottom: 1px solid #444;
 }
+
+
+.notification-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:10px;
+}
+
+.clear-btn{
+  background:#dc2626;
+  color:white;
+  border:none;
+  padding:6px 12px;
+  border-radius:6px;
+  cursor:pointer;
+  font-size:12px;
+}
+
+.clear-btn:hover{
+  background:#b91c1c;
+}

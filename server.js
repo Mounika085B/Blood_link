@@ -1,3 +1,7 @@
+app.get("/", (req, res) => {
+  res.send("🩸 BloodLink Backend Running");
+});
+
 require("dotenv").config();
 
 const express = require("express");
